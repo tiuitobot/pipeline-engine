@@ -1,0 +1,5 @@
+{
+  "r10_plugin": "r10_plugins.passthrough.PassthroughPlugin",
+  "reference_data_path": "",
+  "notes": "No mechanical numeric validation needed for this content-focused pipeline."
+}

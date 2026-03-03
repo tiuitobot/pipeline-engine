@@ -1,0 +1,10 @@
+# Spawn Matrix — Teaching Materials Example
+
+| # | Step | Model | Timeout | Input paths | Output path | Task | Acceptance Criteria |
+|---|------|-------|---------|-------------|-------------|------|---------------------|
+| 0 | Curriculum Analyzer | opus | 10 min | curriculum/base-syllabus.md, plans/v1-agents/version-brief.md | outputs/active/metadata/v1/curriculum_map.md | Map learning goals, dependencies, and student level. | Coverage map includes all required competencies. |
+| 1 | Lesson Planner | opus | 12 min | outputs/active/metadata/v1/curriculum_map.md | outputs/active/metadata/v1/lesson_plan.md | Design lesson sequence with pacing and objectives. | Sequence is coherent and feasible for course duration. |
+| 2 | Slide Writer | codex | 15 min | outputs/active/metadata/v1/lesson_plan.md | outputs/active/metadata/v1/slides_draft.md | Draft slide deck content by lesson. | Each lesson has objective, explanation, and example. |
+| 3 | Exercise Creator | codex | 15 min | outputs/active/metadata/v1/lesson_plan.md, outputs/active/metadata/v1/slides_draft.md | outputs/active/metadata/v1/exercises.md | Create graded exercises (easy/medium/hard) with answer keys. | Exercises align with lesson objectives and difficulty labels. |
+| 4 | Pedagogical Reviewer | opus | 10 min | outputs/active/metadata/v1/slides_draft.md, outputs/active/metadata/v1/exercises.md | outputs/active/metadata/v1/review_report.md | Check pedagogical consistency, inclusivity, and clarity. | No critical pedagogical issues unresolved. |
+| 5 | Materials Assembler | codex | 10 min | outputs/active/metadata/v1/slides_draft.md, outputs/active/metadata/v1/exercises.md, outputs/active/metadata/v1/review_report.md | outputs/active/materials/v1-course-pack.md | Assemble final teaching package with applied fixes. | Course pack includes slides, exercises, and instructor notes. |

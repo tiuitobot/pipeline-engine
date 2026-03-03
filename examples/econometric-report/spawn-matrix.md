@@ -1,0 +1,11 @@
+# Spawn Matrix — Econometric Report Example
+
+| # | Step | Model | Timeout | Input paths | Output path | Task | Acceptance Criteria |
+|---|------|-------|---------|-------------|-------------|------|---------------------|
+| 0 | Domain Specialist | opus | 10 min | plans/v1-agents/version-brief.md, key-info.json | outputs/active/metadata/v1/research_proposals.md | Evaluate context and propose strategy. Include proceed/pause_for_code recommendation. | Recommendation is explicit and justified. |
+| 1 | Data Auditor | codex | 12 min | outputs/active/data/model_outputs.json, key-info.json | outputs/active/metadata/v1/factsheet.md | Build factsheet from machine outputs with traceable keys. | All numeric claims map to source fields. |
+| 2 | Insight Explorer | opus | 15 min | outputs/active/metadata/v1/factsheet.md | outputs/active/metadata/v1/insights.md | Identify ranked insights and tensions. | Each insight cites evidence from factsheet. |
+| 3 | Executive Writer | opus | 15 min | outputs/active/metadata/v1/factsheet.md, outputs/active/metadata/v1/insights.md, plans/v1-agents/version-brief.md | outputs/active/metadata/v1/executive_draft.md | Draft executive narrative with clear implications and caveats. | Tone and scope align with version brief. |
+| 4 | Technical Writer | opus | 20 min | outputs/active/metadata/v1/factsheet.md, outputs/active/metadata/v1/insights.md, outputs/active/metadata/v1/executive_draft.md | outputs/active/metadata/v1/technical_sections.md | Write technical sections with reproducible references. | No contradiction with executive draft. |
+| 5 | Consistency Reviewer | opus | 10 min | outputs/active/metadata/v1/factsheet.md, outputs/active/metadata/v1/executive_draft.md, outputs/active/metadata/v1/technical_sections.md | outputs/active/metadata/v1/review_report.md | Cross-check consistency and list fixes by severity. | Zero critical inconsistencies before assembly. |
+| 6 | Assembler | codex | 10 min | outputs/active/metadata/v1/executive_draft.md, outputs/active/metadata/v1/technical_sections.md, outputs/active/metadata/v1/review_report.md | outputs/active/report_executive/v1.html | Assemble final report and apply approved fixes. | Final artifact generated with all critical fixes. |

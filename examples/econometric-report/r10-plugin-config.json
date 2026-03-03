@@ -1,0 +1,5 @@
+{
+  "r10_plugin": "r10_plugins.numeric_factsheet.NumericFactsheetPlugin",
+  "reference_data_path": "outputs/active/metadata/v1/factsheet.json",
+  "notes": "Use econometric mechanical checks (numeric consistency, hedged language, assets, section IDs)."
+}
