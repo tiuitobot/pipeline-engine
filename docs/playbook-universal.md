@@ -114,15 +114,34 @@ The orchestrator (Main session) acts as **dispatcher + judge**: spawns each agen
 
 ```
 Main (orchestrator)
-  → Agent 1: Data Auditor
-  → Agent 2: Insight Explorer
-  → Agent 3: Executive Writer
-  → Agent 4: Technical Writer
-  → Agent 5: Consistency Reviewer
-  → Agent 6: Assembler
+  → Agent 0: Domain Specialist        [opus]    — context + proceed/pause gate
+  → Agent 1: Data Auditor             [codex]   — factsheet extraction
+  → Agent 2: Insight Explorer         [opus]    — cross-model analysis
+  → Agent 3: Executive Writer         [opus]    — narrative + executive summary
+  → Agent 4: Technical Writer         [opus]    — detailed sections
+  → Agent 5: Consistency Reviewer     [opus]    — cross-check
+  → Agent 6: Assembler                [codex]   — final assembly
+  → Agent 7: External Auditor         [gpt]     — cold audit (independent provider)
 ```
 
+**Agent 0** is the entry gate: it evaluates whether the project context is sufficient to proceed or requires human input (code, data, configuration). If Agent 0 recommends `pause_for_code`, the pipeline halts and reports what is needed.
+
+**Agent 7** runs as the exit gate: it receives ONLY the final assembled deliverable and key-info.json — no intermediate artifacts. This ensures an independent quality assessment. Using a different model provider (e.g., GPT when the pipeline uses Claude) further increases independence.
+
 ### 5.3) Agent Roles and Contracts
+
+#### Agent 0 — Domain Specialist
+- **Purpose:** Evaluate project context, domain constraints, and data readiness before the pipeline begins data processing. Acts as the entry gate.
+- **Input:** `version-brief.md` + `key-info.json` + domain reference materials (if available).
+- **Output:**
+  - `domain_analysis.md` or `research_proposals.md` — context evaluation with one of two recommendations:
+    - `proceed` — context is sufficient, pipeline can continue to Agent 1.
+    - `pause_for_code` — human input required (missing data, code, configuration). Lists exactly what is needed.
+- **Acceptance criteria:**
+  - Recommendation is explicit (`proceed` or `pause_for_code`) with justification.
+  - If `proceed`: identifies key domain constraints that downstream agents must respect.
+  - If `pause_for_code`: lists concrete items needed (not vague requests).
+- **Recommended model:** High-capability (Opus). Task requires domain judgment and strategic evaluation.
 
 #### Agent 1 — Data Auditor
 - **Purpose:** Transform raw pipeline outputs into a validated, single source of truth.
@@ -203,6 +222,22 @@ Main (orchestrator)
   - Pointers and state updated.
 - **Recommended model:** Cost-efficient (Codex/Sonnet). Task is mechanical assembly, not generation.
 
+#### Agent 7 — External Auditor
+- **Purpose:** Independent cold audit of the final deliverable. Has NO access to intermediate artifacts — evaluates only what a reader would see.
+- **Input:** Final assembled deliverable (HTML/PDF from Agent 6) + `key-info.json` only.
+- **Output:**
+  - `external_audit.md` — structured audit report with:
+    - Numeric score (1-10) with criteria breakdown (accuracy, completeness, consistency, clarity).
+    - Issues listed by severity: `CRITICAL`, `HIGH`, `MEDIUM`, `LOW`.
+    - Specific recommendations per issue (actionable, not vague).
+    - Overall assessment: pass (≥7), conditional pass (5-6), fail (<5).
+- **Acceptance criteria:**
+  - Score is justified with evidence from the deliverable.
+  - Each issue has: location, description, severity, proposed fix.
+  - Auditor must NOT have access to factsheet, insights, or review reports (cold audit invariant).
+- **Recommended model:** Different provider preferred (GPT when pipeline uses Claude, or vice versa). Independence > capability for this role.
+- **Note:** This agent was introduced after v11 (var-cambio-icms) when internal review alone proved insufficient to catch structural inconsistencies. The external audit added 15 min to the pipeline but caught issues that increased the final score from 7/10 to 9/10.
+
 ### 5.4) Version Brief
 
 Each pipeline run requires a `version-brief.md` in the project directory that documents **why** this version exists. It is the SSOT for intent and context.
@@ -231,6 +266,10 @@ The version-brief stays on disk and survives context compaction — it is the or
    - Acceptance criteria.
    - Conflict resolution rule (which agent's output prevails).
 5. **Evidence trail.** All intermediate artifacts are preserved in the project's output directory for auditability.
+6. **Agent 0 gate.** If Agent 0 recommends `pause_for_code`, the pipeline MUST halt. The orchestrator reports what is needed and waits for human input. No bypass.
+7. **Agent 7 isolation.** The External Auditor receives ONLY the final deliverable and key-info.json. The orchestrator MUST NOT pass intermediate artifacts, factsheets, or review reports to Agent 7.
+8. **R14 — Agent self-registration.** Each agent, upon receiving its task, confirms: (a) task understood, (b) inputs accessible, (c) output path confirmed. If any confirmation fails, the agent reports the failure immediately instead of proceeding with incomplete context.
+9. **R15 — Auto-announce processing.** Agents report completion status to the orchestrator automatically: `done` (success), `failed` (unrecoverable), or `needs_rework` (partial, fixable). The orchestrator does not poll for status — it waits for the announcement.
 
 ### 5.6) Orchestrator Contract
 
