@@ -1,81 +1,177 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-if [[ $# -ne 1 ]]; then
-  echo "Uso: $0 <diretório-destino>"
+# Usage: new_pipeline.sh <target-dir> [--name <project-name>]
+# Bootstrap a new multi-agent pipeline project using pipeline-engine as base.
+
+if [[ $# -lt 1 ]]; then
+  echo "Uso: $0 <diretório-destino> [--name <nome-do-projeto>]"
+  echo "Exemplo: $0 ~/repos/meu-pipeline --name meu-pipeline"
   exit 1
 fi
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 TARGET="$1"
+PROJECT_NAME="${TARGET##*/}"  # default: basename do diretório
 
-mkdir -p "$TARGET/docs/contracts"
-mkdir -p "$TARGET/templates"
-mkdir -p "$TARGET/scripts"
-mkdir -p "$TARGET/outputs/active"
-mkdir -p "$TARGET/scratch"
-mkdir -p "$TARGET/plans"
+shift
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --name) PROJECT_NAME="$2"; shift 2 ;;
+    *) echo "[WARN] Argumento desconhecido: $1"; shift ;;
+  esac
+done
 
+NOW_ISO="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+TODAY="$(date -u +%Y-%m-%d)"
+
+echo "[1/7] Criando estrutura de diretórios..."
+mkdir -p "$TARGET"/{config,docs/contracts,templates,scripts/r10_plugins,outputs/active,scratch,plans}
+
+echo "[2/7] Copiando engine e plugins..."
+cp "$ROOT/scripts/pipeline_engine.py" "$TARGET/scripts/pipeline_engine.py"
+cp -R "$ROOT/scripts/r10_plugins/." "$TARGET/scripts/r10_plugins/"
+cp "$ROOT/scripts/validate_r10a.py" "$TARGET/scripts/validate_r10a.py"
+cp "$ROOT/scripts/validate_playbook_checksums.py" "$TARGET/scripts/validate_playbook_checksums.py"
+
+echo "[3/7] Copiando playbook e templates..."
 cp "$ROOT/docs/playbook-universal.md" "$TARGET/docs/playbook-universal.md"
 cp -R "$ROOT/templates/." "$TARGET/templates/"
-cp "$ROOT/scripts/pipeline_engine.py" "$TARGET/scripts/pipeline_engine.py"
-cp -R "$ROOT/scripts/r10_plugins" "$TARGET/scripts/r10_plugins"
-cp "$ROOT/scripts/validate_r10a.py" "$TARGET/scripts/validate_r10a.py"
 
-if [[ -f "$ROOT/templates/key-info-template.json" ]]; then
-  cp "$ROOT/templates/key-info-template.json" "$TARGET/key-info.json"
-  sed -i \
-    -e 's/{PROJECT_NAME}/{PLACEHOLDER}/g' \
-    -e 's/{PROJECT_DESCRIPTION}/{PLACEHOLDER}/g' \
-    -e 's/{PIPELINE_VERSION}/{PLACEHOLDER}/g' \
-    -e 's/{SPAWN_MATRIX_FILE}/{PLACEHOLDER}/g' \
-    "$TARGET/key-info.json"
-else
-  cat > "$TARGET/key-info.json" <<'EOF'
+echo "[4/7] Gerando config/playbook_paths.yaml..."
+PLAYBOOK_SHA=$(sha256sum "$TARGET/docs/playbook-universal.md" | awk '{print $1}')
+cat > "$TARGET/config/playbook_paths.yaml" <<EOF
 {
-  "repo": "{PLACEHOLDER}",
+  "schema_version": 1,
+  "contract_version": "1.0.0",
+  "playbook_checksums": {
+    "docs/playbook-universal.md": "$PLAYBOOK_SHA"
+  },
+  "metadata_file": "key-info.json",
+  "templates_dir": "templates",
+  "scripts_dir": "scripts",
+  "docs_dir": "docs",
+  "validate_structure_cmd": "python3 scripts/validate_playbook_checksums.py",
+  "canonical_paths": [
+    "docs/",
+    "scripts/",
+    "templates/",
+    "config/",
+    "plans/",
+    "key-info.json"
+  ],
+  "derived_paths": [
+    "outputs/"
+  ]
+}
+EOF
+
+echo "[5/7] Gerando key-info.json..."
+cat > "$TARGET/key-info.json" <<EOF
+{
+  "repo": "$PROJECT_NAME",
   "version": 1,
-  "lastUpdated": "{YYYY-MM-DDTHH:MM:SS-03:00}",
+  "lastUpdated": "$NOW_ISO",
   "keyInfo": [
     {
       "id": "K001",
-      "info": "project_name: {PLACEHOLDER}",
+      "info": "project_name: $PROJECT_NAME",
       "importance": "high",
       "status": "confirmed",
-      "date": "{YYYY-MM-DD}",
+      "date": "$TODAY",
+      "source": "bootstrap via pipeline-engine/new_pipeline.sh"
+    },
+    {
+      "id": "K002",
+      "info": "description: (preencher)",
+      "importance": "high",
+      "status": "draft",
+      "date": "$TODAY",
+      "source": "bootstrap"
+    },
+    {
+      "id": "K003",
+      "info": "pipeline_engine_source: $ROOT",
+      "importance": "medium",
+      "status": "confirmed",
+      "date": "$TODAY",
       "source": "bootstrap"
     }
   ]
 }
 EOF
-fi
 
-cat > "$TARGET/problem.md" <<'EOF'
+echo "[6/7] Gerando docs de exploração..."
+cat > "$TARGET/problem.md" <<EOF
+# problem.md — $PROJECT_NAME
+
 ## Scope
+(Descreva o escopo do projeto — o que está incluído e o domínio.)
 
 ## Question
+(Qual a pergunta central que este pipeline responde?)
 
 ## Exclusions
+(O que explicitamente NÃO faz parte deste projeto.)
 
 ## Origin
+Bootstrapped from pipeline-engine on $TODAY.
 EOF
 
-cat > "$TARGET/assumptions.md" <<'EOF'
+cat > "$TARGET/assumptions.md" <<EOF
+# assumptions.md — $PROJECT_NAME
+
 ## Design Assumptions
+
+### Pipeline
+- Número de agentes: (definir na spawn-matrix)
+- Modelo do orquestrador: (codex/sonnet — lightweight)
+- Modelo dos agentes de síntese: (opus — high capability)
+
+### Domain
+- (Listar premissas específicas do domínio)
+
+### Validation
+- Plugin R10a: (passthrough / numeric_factsheet / custom)
 EOF
 
-cat > "$TARGET/acceptance.md" <<'EOF'
+cat > "$TARGET/acceptance.md" <<EOF
+# acceptance.md — $PROJECT_NAME
+
 ## Definition of Done
 
-## Acceptance Criteria
+### Structural
+- [ ] config/playbook_paths.yaml exists and checksum matches
+- [ ] problem.md preenchido com escopo real
+- [ ] spawn-matrix.md definida em plans/
+- [ ] version-brief.md definida em plans/
+
+### Pipeline
+- [ ] Pipeline executa do Agent 0 ao último sem falhas
+- [ ] R10a validation passa para todos os agentes com plugin configurado
+- [ ] Output final gerado em outputs/active/
+
+### Quality
+- [ ] (Definir critérios de qualidade específicos do domínio)
 EOF
 
+echo "[7/7] Gerando .gitignore..."
 cat > "$TARGET/.gitignore" <<'EOF'
 scratch/
 *.pyc
 __pycache__/
 venv/
 outputs/active/*.pdf
+.env
 EOF
 
-echo "Bootstrap criado em: $TARGET — próximo passo: preencher problem.md e definir spawn-matrix"
+echo ""
+echo "✅ Bootstrap criado em: $TARGET"
+echo ""
+echo "Próximos passos:"
+echo "  1. cd $TARGET && git init"
+echo "  2. Preencher problem.md com escopo real"
+echo "  3. Criar plans/spawn-matrix.md (copiar de templates/)"
+echo "  4. Criar plans/version-brief.md (copiar de templates/)"
+echo "  5. python3 scripts/validate_playbook_checksums.py  (deve PASS)"
+echo "  6. Rodar pipeline: python3 scripts/pipeline_engine.py --init ..."
