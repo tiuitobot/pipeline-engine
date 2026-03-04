@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "contract_version": "1.0.0",
+  "playbook_checksums": {
+    "docs/playbook-universal.md": "bb3d42f4778b75b96a65bfc85a592d99f3bb3c047e44846a8077bc25218a52a5"
+  },
+  "metadata_file": "key-info.json",
+  "templates_dir": "templates",
+  "scripts_dir": "scripts",
+  "examples_dir": "examples",
+  "docs_dir": "docs",
+  "validate_structure_cmd": "python3 scripts/validate_playbook_checksums.py",
+  "validate_r10a_cmd": "python3 scripts/validate_r10a.py",
+  "canonical_paths": [
+    "docs/",
+    "scripts/",
+    "templates/",
+    "examples/",
+    "config/",
+    "key-info.json"
+  ],
+  "derived_paths": []
+}
