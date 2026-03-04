@@ -16,4 +16,39 @@ if ! bash "$REPO_ROOT/scripts/repo_doctor.sh"; then
   exit 1
 fi
 
+# Smoke evidence gate — new scripts must have execution evidence
+new_scripts=$(git diff --cached --name-only --diff-filter=A | grep -E '\.(sh|py)$' | grep -vE '(^testing/|^tests/|__init__\.py$|_template\.py$)' || true)
+
+if [[ -n "$new_scripts" ]]; then
+  echo "[pre-commit] Verificando smoke evidence para scripts novos..."
+  missing=()
+  while IFS= read -r script; do
+    basename_script="$(basename "$script")"
+    log_file="scratch/smoke-${basename_script}.log"
+    # Check SMOKE-EXEMPT in first 10 lines
+    if head -10 "$REPO_ROOT/$script" 2>/dev/null | grep -q "SMOKE-EXEMPT"; then
+      echo "[SMOKE-GATE] EXEMPT $script"
+      continue
+    fi
+    if [[ ! -f "$REPO_ROOT/$log_file" ]]; then
+      missing+=("$script → $log_file ausente")
+    fi
+  done <<< "$new_scripts"
+
+  if [[ ${#missing[@]} -gt 0 ]]; then
+    echo ""
+    echo "❌ SMOKE-GATE: scripts novos sem evidência de execução:"
+    for m in "${missing[@]}"; do
+      echo "   $m"
+    done
+    echo ""
+    echo "Execute o script e salve o output:"
+    echo "   bash <script> > scratch/smoke-<nome>.log 2>&1"
+    echo "   python3 <script> > scratch/smoke-<nome>.log 2>&1"
+    echo "Ou adicione '# SMOKE-EXEMPT' nas primeiras linhas para scripts não-executáveis."
+    exit 1
+  fi
+  echo "[SMOKE-GATE] PASS"
+fi
+
 exit 0
