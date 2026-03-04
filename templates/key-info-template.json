@@ -1,0 +1,39 @@
+{
+  "repo": "{PROJECT_NAME}",
+  "version": 1,
+  "lastUpdated": "{YYYY-MM-DDTHH:MM:SS-03:00}",
+  "keyInfo": [
+    {
+      "id": "K001",
+      "info": "project_name: {PROJECT_NAME}",
+      "importance": "high",
+      "status": "confirmed",
+      "date": "{YYYY-MM-DD}",
+      "source": "bootstrap"
+    },
+    {
+      "id": "K002",
+      "info": "description: {PROJECT_DESCRIPTION}",
+      "importance": "high",
+      "status": "confirmed",
+      "date": "{YYYY-MM-DD}",
+      "source": "bootstrap"
+    },
+    {
+      "id": "K003",
+      "info": "pipeline_version: {PIPELINE_VERSION}",
+      "importance": "medium",
+      "status": "confirmed",
+      "date": "{YYYY-MM-DD}",
+      "source": "bootstrap"
+    },
+    {
+      "id": "K004",
+      "info": "spawn_matrix: plans/{SPAWN_MATRIX_FILE}",
+      "importance": "medium",
+      "status": "confirmed",
+      "date": "{YYYY-MM-DD}",
+      "source": "bootstrap"
+    }
+  ]
+}
