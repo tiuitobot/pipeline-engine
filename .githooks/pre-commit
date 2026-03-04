@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# pre-commit hook — pipeline-engine gate
+# Versionado em .githooks/ (P139: gate não-versionado = gate que desaparece)
+# Ativado via: git config core.hooksPath .githooks
+# Setup: bash scripts/install_git_hooks.sh
+
+set -euo pipefail
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+
+echo "[pre-commit] Rodando repo_doctor..."
+if ! bash "$REPO_ROOT/scripts/repo_doctor.sh"; then
+  echo ""
+  echo "❌ repo_doctor.sh falhou. Commit bloqueado."
+  echo "   Corrija os erros acima antes de commitar."
+  exit 1
+fi
+
+exit 0

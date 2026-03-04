@@ -28,11 +28,19 @@ TODAY="$(date -u +%Y-%m-%d)"
 echo "[1/7] Criando estrutura de diretórios..."
 mkdir -p "$TARGET"/{config,docs/contracts,templates,scripts/r10_plugins,outputs/active,scratch,plans}
 
-echo "[2/7] Copiando engine e plugins..."
+echo "[2/7] Copiando engine, plugins e hooks..."
 cp "$ROOT/scripts/pipeline_engine.py" "$TARGET/scripts/pipeline_engine.py"
 cp -R "$ROOT/scripts/r10_plugins/." "$TARGET/scripts/r10_plugins/"
 cp "$ROOT/scripts/validate_r10a.py" "$TARGET/scripts/validate_r10a.py"
 cp "$ROOT/scripts/validate_playbook_checksums.py" "$TARGET/scripts/validate_playbook_checksums.py"
+cp "$ROOT/scripts/install_git_hooks.sh" "$TARGET/scripts/install_git_hooks.sh"
+
+# Copiar hooks versionados (P139: gate não-versionado = gate que desaparece)
+if [[ -d "$ROOT/.githooks" ]]; then
+  mkdir -p "$TARGET/.githooks"
+  cp -R "$ROOT/.githooks/." "$TARGET/.githooks/"
+  chmod +x "$TARGET/.githooks"/* 2>/dev/null || true
+fi
 
 echo "[3/7] Copiando playbook e templates..."
 cp "$ROOT/docs/playbook-universal.md" "$TARGET/docs/playbook-universal.md"
@@ -170,8 +178,9 @@ echo "✅ Bootstrap criado em: $TARGET"
 echo ""
 echo "Próximos passos:"
 echo "  1. cd $TARGET && git init"
-echo "  2. Preencher problem.md com escopo real"
-echo "  3. Criar plans/spawn-matrix.md (copiar de templates/)"
-echo "  4. Criar plans/version-brief.md (copiar de templates/)"
-echo "  5. python3 scripts/validate_playbook_checksums.py  (deve PASS)"
-echo "  6. Rodar pipeline: python3 scripts/pipeline_engine.py --init ..."
+echo "  2. bash scripts/install_git_hooks.sh   ← ativa pre-commit gate (repo_doctor)"
+echo "  3. Preencher problem.md com escopo real"
+echo "  4. Criar plans/spawn-matrix.md (copiar de templates/)"
+echo "  5. Criar plans/version-brief.md (copiar de templates/)"
+echo "  6. python3 scripts/validate_playbook_checksums.py  (deve PASS)"
+echo "  7. Rodar pipeline: python3 scripts/pipeline_engine.py --init ..."
