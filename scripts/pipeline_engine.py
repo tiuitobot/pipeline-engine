@@ -23,6 +23,7 @@ import importlib
 import json
 import os
 import re
+import subprocess
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -383,6 +384,40 @@ def _print_json(payload: dict[str, Any]) -> None:
     print(json.dumps(payload, ensure_ascii=False, indent=2))
 
 
+def _find_repo_doctor(accumulation_dir: Path) -> Path | None:
+    script_dir = Path(__file__).resolve().parent
+    candidates = [
+        script_dir / "repo_doctor.sh",
+        accumulation_dir.parent / "repo_doctor.sh",
+        accumulation_dir.parent / "scripts" / "repo_doctor.sh",
+    ]
+
+    for candidate in candidates:
+        if candidate.exists() and candidate.is_file():
+            return candidate
+    return None
+
+
+def _run_repo_doctor_or_warn(accumulation_dir: Path) -> int:
+    doctor_path = _find_repo_doctor(accumulation_dir)
+    if doctor_path is None:
+        print(
+            "[WARN] repo_doctor.sh not found. Proceeding with --init for backward compatibility.",
+            file=sys.stderr,
+        )
+        return EXIT_OK
+
+    result = subprocess.run(["bash", str(doctor_path)], check=False)
+    if result.returncode != 0:
+        print(
+            "[INIT BLOCKED] repo_doctor.sh failed. Run 'bash scripts/new_pipeline.sh <dir>' first, or fix missing artifacts manually.",
+            file=sys.stderr,
+        )
+        return EXIT_BLOCKED
+
+    return EXIT_OK
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Generic multi-agent pipeline engine")
     parser.add_argument("--accumulation-dir", required=True, help="Path to accumulation directory")
@@ -406,6 +441,10 @@ def main() -> int:
 
     try:
         if args.init:
+            gate_code = _run_repo_doctor_or_warn(engine.accumulation_dir)
+            if gate_code != EXIT_OK:
+                return gate_code
+
             state = engine.init_state(force=args.force)
             _print_json({"status": "initialized", "state_path": str(engine.state_path), "agents": len(state.get("agents", []))})
             return EXIT_OK

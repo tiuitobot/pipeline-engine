@@ -20,41 +20,24 @@ O engine é **agnóstico de domínio** — funciona para relatórios econométri
 |---------|--------|
 | [`docs/playbook-universal.md`](docs/playbook-universal.md) | Especificação completa — governança, regras, protocolo determinístico, pipeline §5 |
 | [`scripts/pipeline_engine.py`](scripts/pipeline_engine.py) | Engine CLI — init, dispatch, record, status |
+| [`scripts/new_pipeline.sh`](scripts/new_pipeline.sh) | Bootstrap one-shot de um novo projeto pipeline com estrutura mínima |
+| [`scripts/repo_doctor.sh`](scripts/repo_doctor.sh) | Validador estrutural do repositório (artefatos mandatórios + checksums) |
 | [`scripts/r10_plugins/`](scripts/r10_plugins/) | Plugins de validação mecânica (R10a) |
 | [`templates/`](templates/) | Contratos, runbook, spawn-matrix, version-brief (prontos para copiar) |
 | [`examples/`](examples/) | Configurações de exemplo: relatório econométrico + material didático |
 
 ## Como usar para um projeto novo
 
-### 1. Copiar templates para o seu repo
+### 1. Bootstrap one-shot (recomendado)
 ```bash
-# No seu repo de destino:
-cp -r /path/to/pipeline-engine/templates/ docs/contracts/
-cp /path/to/pipeline-engine/scripts/pipeline_engine.py scripts/
-cp -r /path/to/pipeline-engine/scripts/r10_plugins/ scripts/r10_plugins/
+bash scripts/new_pipeline.sh <target-dir>
 ```
 
-### 2. Criar spawn-matrix do seu projeto
-Use `templates/spawn-matrix-template.md` como base. Defina:
-- Número e nome de cada agente
-- Modelo LLM por agente (opus, codex, sonnet, gpt)
-- Timeout por agente
-- Paths de input e output
-- Task description e acceptance criteria
+Esse comando cria a estrutura mínima do projeto, copia engine/plugins/templates e gera arquivos iniciais obrigatórios.
 
-### 3. Criar version-brief
-Use `templates/version-brief-template.md`. Descreva:
-- O que muda nesta versão vs anterior
-- Diretrizes editoriais (audiência, tom, foco)
-- Inputs disponíveis
+> **Nota importante:** `pipeline_engine.py --init` recusa inicializar se `repo_doctor.sh` falhar.
 
-### 4. Configurar contrato do orquestrador
-Preencha `templates/CONTRACT-00-template.md` com as regras do seu pipeline:
-- Budget de contexto do orquestrador
-- Protocolo de falha e rework
-- Regras R10-R16 (quais aplicam)
-
-### 5. Inicializar e rodar
+### 2. Inicializar e rodar
 ```bash
 # Inicializar state
 python3 scripts/pipeline_engine.py \
@@ -78,6 +61,38 @@ python3 scripts/pipeline_engine.py \
   --record-r10a --agent-number 0 \
   --r10a-path outputs/active/metadata/v1/r10_mechanical_agent_0.json
 ```
+
+### Alternativa: setup manual
+
+Se preferir montar tudo manualmente, siga este fluxo:
+
+#### A. Copiar templates para o seu repo
+```bash
+# No seu repo de destino:
+cp -r /path/to/pipeline-engine/templates/ docs/contracts/
+cp /path/to/pipeline-engine/scripts/pipeline_engine.py scripts/
+cp -r /path/to/pipeline-engine/scripts/r10_plugins/ scripts/r10_plugins/
+```
+
+#### B. Criar spawn-matrix do seu projeto
+Use `templates/spawn-matrix-template.md` como base. Defina:
+- Número e nome de cada agente
+- Modelo LLM por agente (opus, codex, sonnet, gpt)
+- Timeout por agente
+- Paths de input e output
+- Task description e acceptance criteria
+
+#### C. Criar version-brief
+Use `templates/version-brief-template.md`. Descreva:
+- O que muda nesta versão vs anterior
+- Diretrizes editoriais (audiência, tom, foco)
+- Inputs disponíveis
+
+#### D. Configurar contrato do orquestrador
+Preencha `templates/CONTRACT-00-template.md` com as regras do seu pipeline:
+- Budget de contexto do orquestrador
+- Protocolo de falha e rework
+- Regras R10-R16 (quais aplicam)
 
 ## Padrão de orquestração: spawn-once-send-sync
 
