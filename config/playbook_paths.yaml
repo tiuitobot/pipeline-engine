@@ -2,7 +2,7 @@
   "schema_version": 1,
   "contract_version": "1.0.0",
   "playbook_checksums": {
-    "docs/playbook-universal.md": "b88f33c2f35c845e5750419852de261feb8d38cc664004be7960d0140238393d"
+    "docs/playbook-universal.md": "2c050a2d7c84b51007a93a977044ef3bf3bed8008567cd5fc0cf4f6076b84f05"
   },
   "metadata_file": "key-info.json",
   "templates_dir": "templates",

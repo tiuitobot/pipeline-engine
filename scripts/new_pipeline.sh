@@ -34,6 +34,8 @@ cp -R "$ROOT/scripts/r10_plugins/." "$TARGET/scripts/r10_plugins/"
 cp "$ROOT/scripts/validate_r10a.py" "$TARGET/scripts/validate_r10a.py"
 cp "$ROOT/scripts/validate_playbook_checksums.py" "$TARGET/scripts/validate_playbook_checksums.py"
 cp "$ROOT/scripts/install_git_hooks.sh" "$TARGET/scripts/install_git_hooks.sh"
+cp "$ROOT/scripts/repo_doctor.sh" "$TARGET/scripts/repo_doctor.sh"
+chmod +x "$TARGET/scripts/repo_doctor.sh"
 
 # Copiar hooks versionados (P139: gate não-versionado = gate que desaparece)
 if [[ -d "$ROOT/.githooks" ]]; then

@@ -327,8 +327,37 @@ The repo-specific playbook (`docs/llm_playbook.md`) may customize:
 
 The repo-specific adaptation **must not remove** the factsheet-as-SSOT rule or the consistency review stage. These are structural invariants.
 
-### 5.7) Relation to ADR-026
+### 5.8) Relation to ADR-026
 This section generalizes the protocol originally defined in ADR-026 (Compartmented Multi-Spawn for Complex Technical Work). ADR-026 remains the decision record; this section is the operational specification.
+
+### 5.9) Lessons from Production (enforceable)
+
+**Evidence base:** var-cambio-icms (14 versions, 8.96/10), lucas-mapa-mental (6 PDF versions, delivered).
+
+#### Visual generation
+- **Macro and inline visuals MUST use the same style.** Two visual systems in one document = client rejection (evidence: lucas v3 → client rejected inconsistency).
+- **Visual iteration requires human feedback.** Budget 4-6 render→inspect→fix cycles. Automated QA catches structure issues, not aesthetic preferences.
+- **matplotlib FancyBboxPatch is the reference style** for box-and-arrow diagrams: rounded corners, colored fills, thick borders, arrows with `-|>`, sans-serif 10-14pt, DPI=300.
+- **Emojis don't render in most PDF fonts.** Replace with ASCII markers ([!], [v], [D], [M], [L]) before PDF generation.
+
+#### Data and locale
+- **Brazilian locale (comma as decimal separator) breaks naive regex.** When parsing `14,5%`, a greedy `\d[\d,.]*` will eat `14,` as one group and leave `5%` as the next. Fix: require parentheses for absolute+percent format, use `\s+` (not `\s{2,}`) for labels with internal spaces.
+- **Color tiers must be based on the PERCENTAGE, not absolute count.** When data has both (e.g., `406 (28.1%)`), color by the percentage.
+- **Scraping frequency data is the product differentiator.** Real exam question frequency from QConcursos (or equivalent) is what no generic LLM provides.
+
+#### Delegation
+- **Visual generation is NOT delegable to Codex.** Three attempts failed: truncation, wrong style, locale bugs. Opus must own visual quality.
+- **Mechanical verification IS delegable** (consistency checks, grep gates, structured reviews). Provide explicit contracts with numbered checks and expected outputs.
+- **Agent contracts must include anti-requirements.** What the agent must NOT do is as important as what it must do (e.g., "do NOT state old errors in student material").
+
+#### PDF generation
+- **weasyprint over Puppeteer/Chromium.** Puppeteer causes OOM in constrained environments.
+- **`replacements.json` as interface** between visual generation and PDF assembly. Decouples the two, allowing stack changes without rewriting the PDF generator.
+- **TOC with clickable internal links** (`<a href="#anchor">`) works in weasyprint PDF output.
+- **White space residual is a weasyprint limitation.** Acceptable; migration to Typst/LaTeX not justified unless fine flow control is a hard requirement.
+
+#### Correction notes in student material
+- **NEVER state "it was X, now Y" in student-facing material.** Students memorize X. State the correct fact directly. Move correction history to the professor's parecer técnico (separate deliverable).
 
 ## 6) Version Policy (Generic)
 *[Was Section 5 in v1.0.x]*
