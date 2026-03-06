@@ -97,8 +97,39 @@ Minimum universal validators that must exist in each repo:
 
 ## 5) Multi-Agent Production Pipeline for Complex Deliverables
 
+### 5.0) Solo-First Protocol (mandatory pre-condition)
+
+**Rule: The main agent must produce a solid v1 before activating multi-agent orchestration.**
+
+The deterministic scaffold (repo structure, `pipeline-state.json`, metadata tracking, auditing) should be used from day one. But agentic orchestration (multi-agent dispatch with formal contracts) must NOT be activated until:
+
+1. **A working v1 exists**, produced by the main agent (Opus) directly.
+2. **At least one feedback cycle** with the human has occurred (corrections applied, direction confirmed).
+3. **The document/deliverable has grown beyond what one agent can hold in context** (typically >30 pages or 3+ independent data sources).
+
+**Rationale (evidence-based):**
+- var-cambio-icms: versions 1–10 were produced by Opus solo. Pipeline entered at v11 (~60 pages, multiple sources). Result: 7/10 client score on first pipeline run.
+- Lucas: pipeline activated at v1 (single source, single domain). Result: 6/10 client score on v1, data inconsistencies on v2 (889-question gap missed by all agents).
+- Root cause: pipeline scales existing quality — it does not create initial quality. Delegating v1 to subagents removes the main agent's contextual judgment during the critical formation phase.
+
+**Solo phase workflow:**
+```
+Main (Opus) does everything:
+  → Parse source material
+  → Collect/scrape external data
+  → Write content
+  → Generate visuals (or delegate 1 mechanical codex worker)
+  → Self-review with consistency checks
+  → Deliver v1 → human feedback → iterate
+```
+
+**Graduation criteria (all required to activate §5.1):**
+- [ ] v1 delivered and reviewed by human
+- [ ] Document exceeds single-context threshold (>30 pages OR 3+ independent sources)
+- [ ] Iterative corrections stabilized (no fundamental structural changes in last 2 versions)
+
 ### 5.1) Trigger
-Activate this protocol when the deliverable meets **any** condition:
+Activate this protocol when **§5.0 graduation criteria are met** AND the deliverable meets **any** condition:
 1. 3+ distinct analytical blocks (e.g., multiple models, datasets, or methodologies).
 2. 2+ output audiences (e.g., executive summary + technical appendix).
 3. Detected inconsistencies between narrative claims and numerical outputs.
